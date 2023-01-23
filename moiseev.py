@@ -18,9 +18,12 @@ class MoiseevDecisionPen:
     def predict(self, X):
         N, d = X.shape
         score = np.zeros((N, len(self.dict)))
-        for n in range(N):
-            for i, (cls, params) in enumerate(self.dict.items()):
-                score[n, i] = -0.5 * np.sum(np.log(params['sigma'])) \
-                    - (X[n] - params['mu']).T @ np.diag(params['sigma']**-1) @ (X[n] - params['mu'])
-        return score
+        
+        idx2label = {}
+        for i, (cls, params) in enumerate(self.dict.items()):
+            idx2label[i] = cls
+            score[:, i] = -0.5 * np.sum(np.log(params['sigma'])) \
+                - ((X - params['mu']) @ np.diag(params['sigma']**-1) * (X - params['mu'])).sum(1)
+        preds = np.array([idx2label[p] for p in np.argmax(score, axis=1)])
+        return preds
 
